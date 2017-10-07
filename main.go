@@ -25,7 +25,7 @@ const defaultTemplate = "{{ .Sha384 }}"
 // for externally served files for SRI
 const autoExternalTemplate = `
 {{- if eq $.Ext ".css" -}}
-<link rel="stylesheet" src="{{ $.Source }}" integrity="{{ .Sha384 }}" crossorigin="anonymous"></link>
+<link rel="stylesheet" href="{{ $.Source }}" integrity="{{ .Sha384 }}" crossorigin="anonymous"></link>
 {{- else -}}
 <script src="{{ $.Source }}"{{ $.Async }} integrity="{{ .Sha384 }}" crossorigin="anonymous"></script>
 {{- end -}}
@@ -34,7 +34,7 @@ const autoExternalTemplate = `
 // for locally served files with Cache Buster
 const autoLocalTemplate = `
 {{- if eq $.Ext ".css" -}}
-<link rel="stylesheet" src="{{ $.Dir }}{{ $.Source }}?v={{ $.Checksum }}"></link>
+<link rel="stylesheet" href="{{ $.Dir }}{{ $.Source }}?v={{ $.Checksum }}"></link>
 {{- else -}}
 <script src="{{ $.Dir }}{{ $.Source }}?v={{ $.Checksum }}"{{ $.Async }}></script>
 {{- end }}
