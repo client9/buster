@@ -34,14 +34,15 @@ const autoExternalTemplate = `
 // for locally served files with Cache Buster
 const autoLocalTemplate = `
 {{- if eq $.Ext ".css" -}}
-<link rel="stylesheet" src="{{ $.Source }}?v={{ $.Checksum }}"></link>
+<link rel="stylesheet" src="{{ $.Dir }}{{ $.Source }}?v={{ $.Checksum }}"></link>
 {{- else -}}
-<script src="{{ $.Source }}?v={{ $.Checksum }}"{{ $.Async }}></script>
+<script src="{{ $.Dir }}{{ $.Source }}?v={{ $.Checksum }}"{{ $.Async }}></script>
 {{- end }}
 `
 
 type TData struct {
 	Source   string
+	Dir      string
 	Base     string
 	Ext      string
 	Sha384   string
@@ -53,6 +54,7 @@ type TData struct {
 func main() {
 	//templateName := flag.String("t", "auto", "template")
 	attrSrc := flag.String("src", "", "src name")
+	attrDir := flag.String("dir", "/", "dir name")
 	attrAsync := flag.Bool("async", false, "use async tag in javascript")
 	flag.Parse()
 
@@ -61,16 +63,22 @@ func main() {
 		log.Fatalf("No filename specified")
 	}
 	name := args[0]
-	if *attrSrc == "" {
-		*attrSrc = name
-	}
+
 	var raw []byte
 	var err error
-
-	// read file
 	raw, err = readFile(name)
 	if err != nil {
 		log.Fatalf("fail for %q: %s", name, err)
+	}
+
+	src := *attrSrc
+	if src == "" {
+		src = name
+		if filepath.IsAbs(name) {
+			src = filepath.Base(name)
+		}
+		// convert windows to forward slash
+		src = filepath.ToSlash(src)
 	}
 
 	async := ""
@@ -85,9 +93,10 @@ func main() {
 	tmp512 := sha512.Sum512(raw)
 	raw512 := []byte(tmp512[:])
 	pagedata := TData{
-		Source:   *attrSrc,
-		Base:     filepath.Base(*attrSrc),
-		Ext:      filepath.Ext(*attrSrc),
+		Source:   src,
+		Base:     filepath.Base(src),
+		Ext:      filepath.Ext(src),
+		Dir:      *attrDir,
 		Sha384:   tob64(raw384),
 		Sha512:   tob64(raw512),
 		Checksum: hex.EncodeToString(raw512[:6]),
